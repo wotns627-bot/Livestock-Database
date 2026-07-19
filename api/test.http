@@ -1,0 +1,15 @@
+POST http://localhost:5000/api/cows
+Content-Type: application/json
+
+{
+  "farmId": "FARM001",
+  "cowNumber": "1001",
+  "entryDate": "2026-07-19",
+  "birthDate": "2025-01-01",
+  "kpn": "KPN12345",
+  "grade": {
+    "mating": "A",
+    "meat": "1++"
+  },
+  "owner": "홍길동"
+}
