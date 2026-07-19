@@ -1,0 +1,21 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# next.js
+.next
+out
+build
+
+# misc
+.DS_Store
+*.pem
+*.log
+# 로컬 설정 및 빌드 파일 무시
+node_modules/
+.next/
+dist/
+build/
+.env
+*.log
