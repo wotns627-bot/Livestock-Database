@@ -1,0 +1,9 @@
+POST http://localhost:3000/api/cows
+Content-Type: application/json
+
+{
+  "cowId": "KPN-12345",
+  "pen": "1-dong",
+  "grade": "1++",
+  "birthDate": "2026-07-20"
+}
