@@ -60,9 +60,18 @@ export default function RootLayout({
   return (
     <html lang="ko" className={isDarkMode ? 'dark' : ''} suppressHydrationWarning>
       <head>
-        <title>한우 스마트 ERP</title>
-        <meta name="description" content="스마트 한우 농장 통합 관리 시스템" />
+        <title>한우 스마트 ERP - 스마트팜 한우 농장 통합 관리 시스템</title>
+        <meta name="description" content="한우 농장을 위한 가축 개체 관리, 번식, 건강/방역, 사료 재고 및 TMR 통합 ERP 시스템" />
+        <meta name="keywords" content="한우, 스마트팜, 농장관리, ERP, 가축관리, 축사관리" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        
+        {/* 구글 서치 콘솔 소유권 확인 태그 */}
+        <meta name="google-site-verification" content="WV-oHnr5SFH2p6rrEqNmBuH8AfaiMslk81UPaUC5PSY" />
+        
+        {/* 소셜미디어 및 검색엔진 최적화 태그 */}
+        <meta property="og:title" content="한우 스마트 ERP" />
+        <meta property="og:description" content="스마트 한우 농장 통합 관리 시스템" />
+        <meta property="og:type" content="website" />
       </head>
       <body className={`antialiased transition-colors duration-200 ${isDarkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
         <div className={`min-h-screen flex flex-col lg:flex-row relative ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
