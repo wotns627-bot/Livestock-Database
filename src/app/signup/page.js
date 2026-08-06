@@ -14,11 +14,23 @@ export default function SignupPage() {
     e.preventDefault();
     setError('');
 
+    // 공백을 제거하고 검사
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedUsername || !trimmedPassword) {
+      setError('아이디와 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ 
+          username: trimmedUsername, 
+          password: trimmedPassword 
+        }),
       });
 
       const data = await res.json();
