@@ -2,17 +2,18 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
-    const { username, password } = await request.json();
+    const { username, password, name, phone, address } = await request.json();
 
-    if (!username || !password) {
+    if (!username || !password || !name || !phone || !address) {
       return NextResponse.json(
-        { success: false, message: '아이디와 비밀번호를 모두 입력해주세요.' },
+        { success: false, message: '모든 항목을 입력해주세요.' },
         { status: 400 }
       );
     }
 
-    // TODO: 실제 프로젝트에서는 여기서 MongoDB 등 DB에 회원 정보를 저장합니다.
-    // 현재는 회원가입 성공 응답을 내려줍니다.
+    // TODO: DB(MongoDB 등)에 사용자 정보(username, password, name, phone, address) 저장 로직 구현
+    console.log('회원가입 데이터:', { username, name, phone, address });
+
     return NextResponse.json({
       success: true,
       message: '회원가입이 완료되었습니다.',

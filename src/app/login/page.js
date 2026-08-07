@@ -2,104 +2,82 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
-  const [isSignup, setIsSignup] = useState(false); // 로그인/회원가입 상태 전환
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setMessage('');
-
-    const endpoint = isSignup ? '/api/auth/signup' : '/api/auth/login';
+    setError('');
 
     try {
-      const response = await fetch(endpoint, {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) {
-        setMessage(data.message || '오류가 발생했습니다.');
-        return;
-      }
-
-      alert(data.message);
-      
-      if (!isSignup) {
-        // 로그인 성공 시 메인 페이지나 대시보드로 이동
-        router.push('/'); 
+      if (res.ok && data.success) {
+        // 로그인 성공 시 대시보드나 홈으로 이동
+        router.push('/');
+        router.refresh();
       } else {
-        // 회원가입 성공 시 로그인 모드로 전환
-        setIsSignup(false);
+        setError(data.message || '아이디 또는 비밀번호가 올바르지 않습니다.');
       }
-    } catch (error) {
-      console.error('Auth error:', error);
-      setMessage('서버 통신 중 오류가 발생했습니다.');
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('서버 통신 중 오류가 발생했습니다.');
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '80px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <h2>{isSignup ? '회원가입' : '로그인'}</h2>
-      
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px' }}>이메일</label>
+    <div className="flex min-h-screen items-center justify-center bg-gray-100">
+      <form onSubmit={handleLogin} className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
+        <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">Smart Farm 로그인</h1>
+        
+        {error && <div className="mb-4 rounded bg-red-100 p-3 text-sm text-red-700">{error}</div>}
+
+        <div className="mb-4">
+          <label className="mb-2 block text-sm font-bold text-gray-700">아이디</label>
           <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
             required
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              boxSizing: 'border-box',
-              color: 'black',          // 👈 글자 색상을 검은색으로 지정
-              backgroundColor: 'white' // 👈 배경을 하얀색으로 지정
-            }}
           />
         </div>
 
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px' }}>비밀번호</label>
+        <div className="mb-6">
+          <label className="mb-2 block text-sm font-bold text-gray-700">비밀번호</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
             required
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              boxSizing: 'border-box',
-              color: 'black',          // 👈 글자 색상을 검은색으로 지정
-              backgroundColor: 'white' // 👈 배경을 하얀색으로 지정
-            }}
           />
         </div>
 
-        {message && <p style={{ color: 'red', fontSize: '14px' }}>{message}</p>}
-
-        <button 
-          type="submit" 
-          style={{ padding: '10px', backgroundColor: '#0070f3', color: '#white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+        <button
+          type="submit"
+          className="w-full rounded bg-green-600 py-2 text-white font-bold hover:bg-green-700 mb-4 transition"
         >
-          {isSignup ? '가입하기' : '로그인하기'}
+          로그인
         </button>
-      </form>
 
-      <button
-        onClick={() => setIsSignup(!isSignup)}
-        style={{ background: 'none', border: 'none', color: '#0070f3', cursor: 'pointer', marginTop: '15px', width: '100%', textAlign: 'center' }}
-      >
-        {isSignup ? '이미 계정이 있으신가요? 로그인' : '계정이 없으신가요? 회원가입'}
-      </button>
+        <div className="text-center text-sm">
+          <Link href="/signup" className="text-blue-600 hover:underline">
+            계정이 없으신가요? 회원가입하기
+          </Link>
+        </div>
+      </form>
     </div>
   );
 }
