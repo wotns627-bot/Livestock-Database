@@ -1,91 +1,80 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [autoLogin, setAutoLogin] = useState(false);
-  const router = useRouter();
+export default function FindPage() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [resultMessage, setResultMessage] = useState('');
+  const [error, setError] = useState('');
 
-  const handleLogin = async (e) => {
+  const handleFindId = async (e) => {
     e.preventDefault();
+    setError('');
+    setResultMessage('');
+
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/find', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, autoLogin }),
+        body: JSON.stringify({ action: 'findId', name, email }),
       });
+
       const data = await res.json();
 
       if (res.ok && data.success) {
-        alert('로그인 성공!');
-        router.push('/');
+        setResultMessage(data.message);
       } else {
-        alert(data.message || '로그인에 실패했습니다.');
+        setError(data.message || '일치하는 정보를 찾을 수 없습니다.');
       }
     } catch (err) {
-      alert('서버 오류가 발생했습니다.');
+      setError('서버 통신 중 오류가 발생했습니다.');
     }
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>🌾 Smart Farm 로그인</h2>
-        <p style={styles.subtitle}>시스템을 이용하려면 로그인하세요.</p>
+        <h2 style={styles.title}>🔍 아이디 찾기</h2>
+        <p style={styles.subtitle}>가입 시 등록한 이름과 이메일을 입력해주세요.</p>
 
-        <form onSubmit={handleLogin} style={styles.form}>
+        {error && <div style={styles.errorBox}>{error}</div>}
+        {resultMessage && <div style={styles.successBox}>{resultMessage}</div>}
+
+        <form onSubmit={handleFindId} style={styles.form}>
           <div style={styles.inputGroup}>
-            <label style={styles.label}>아이디</label>
+            <label style={styles.label}>이름</label>
             <input
               type="text"
-              placeholder="아이디를 입력하세요"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="가입자 이름"
               style={styles.input}
               required
             />
           </div>
 
           <div style={styles.inputGroup}>
-            <label style={styles.label}>비밀번호</label>
+            <label style={styles.label}>이메일</label>
             <input
-              type="password"
-              placeholder="비밀번호를 입력하세요"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="가입 시 등록한 이메일"
               style={styles.input}
               required
             />
-          </div>
-
-          <div style={styles.options}>
-            <label style={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={autoLogin}
-                onChange={(e) => setAutoLogin(e.target.checked)}
-              />
-              자동 로그인
-            </label>
-            {/* 아이디/비밀번호 찾기 링크 추가 */}
-            <Link href="/find" style={styles.subLink}>
-              아이디 / 비밀번호 찾기
-            </Link>
           </div>
 
           <button type="submit" style={styles.button}>
-            로그인
+            아이디 찾기
           </button>
         </form>
 
         <div style={styles.footer}>
-          <span>계정이 없으신가요? </span>
-          <Link href="/signup" style={styles.link}>
-            회원가입하기
+          <Link href="/login" style={styles.link}>
+            로그인 화면으로 돌아가기
           </Link>
         </div>
       </div>
@@ -118,10 +107,29 @@ const styles = {
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: '14px',
+    fontSize: '13px',
     color: '#7f8c8d',
     marginBottom: '24px',
     textAlign: 'center',
+  },
+  errorBox: {
+    marginBottom: '16px',
+    padding: '10px',
+    backgroundColor: '#ffeaa7',
+    color: '#d63031',
+    borderRadius: '6px',
+    fontSize: '13px',
+    textAlign: 'center',
+  },
+  successBox: {
+    marginBottom: '16px',
+    padding: '10px',
+    backgroundColor: '#e8f8f5',
+    color: '#27ae60',
+    borderRadius: '6px',
+    fontSize: '13px',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   form: {
     display: 'flex',
@@ -145,23 +153,6 @@ const styles = {
     borderRadius: '6px',
     outline: 'none',
   },
-  options: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    fontSize: '12px',
-    color: '#555',
-  },
-  checkboxLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    cursor: 'pointer',
-  },
-  subLink: {
-    color: '#7f8c8d',
-    textDecoration: 'none',
-  },
   button: {
     marginTop: '8px',
     padding: '12px',
@@ -177,7 +168,6 @@ const styles = {
     marginTop: '24px',
     textAlign: 'center',
     fontSize: '13px',
-    color: '#7f8c8d',
   },
   link: {
     color: '#27ae60',
