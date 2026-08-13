@@ -9,7 +9,7 @@ export default function SignupPage() {
     username: '',
     password: '',
     name: '',
-    email: '', // 추가된 이메일 항목
+    email: '',
     phone: '',
     address: '',
   });
@@ -27,9 +27,8 @@ export default function SignupPage() {
     e.preventDefault();
     setError('');
 
-    // 빈 값 체크 (이메일 포함)
     if (!formData.username || !formData.password || !formData.name || !formData.email || !formData.phone || !formData.address) {
-      setError('모든 항목(아이디, 비밀번호, 이름, 이메일, 연락처, 주소)을 빠짐없이 입력해주세요.');
+      setError('모든 항목을 빠짐없이 입력해주세요.');
       return;
     }
 
@@ -54,104 +53,190 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 py-12">
-      <form onSubmit={handleSignup} className="w-full max-w-lg rounded-lg bg-white p-8 shadow-md">
-        <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">Smart Farm 회원가입</h1>
-        
-        {error && <div className="mb-4 rounded bg-red-100 p-3 text-sm text-red-700">{error}</div>}
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <h2 style={styles.title}>🌾 Smart Farm 회원가입</h2>
+        <p style={styles.subtitle}>새로운 계정을 만들어 스마트팜을 시작하세요.</p>
 
-        <div className="mb-4">
-          <label className="mb-2 block text-sm font-bold text-gray-700">아이디</label>
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
-            placeholder="사용하실 아이디를 입력하세요"
-            required
-          />
-        </div>
+        {error && <div style={styles.errorBox}>{error}</div>}
 
-        <div className="mb-4">
-          <label className="mb-2 block text-sm font-bold text-gray-700">비밀번호</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
-            placeholder="비밀번호를 입력하세요"
-            required
-          />
-        </div>
+        <form onSubmit={handleSignup} style={styles.form}>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>아이디</label>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              placeholder="사용하실 아이디를 입력하세요"
+              style={styles.input}
+              required
+            />
+          </div>
 
-        <div className="mb-4">
-          <label className="mb-2 block text-sm font-bold text-gray-700">이름</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
-            placeholder="성함을 입력하세요"
-            required
-          />
-        </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>비밀번호</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="비밀번호를 입력하세요"
+              style={styles.input}
+              required
+            />
+          </div>
 
-        {/* 새로 추가된 이메일 입력란 */}
-        <div className="mb-4">
-          <label className="mb-2 block text-sm font-bold text-gray-700">이메일</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
-            placeholder="아이디/비밀번호 찾기에 사용됩니다"
-            required
-          />
-        </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>이름</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="성함을 입력하세요"
+              style={styles.input}
+              required
+            />
+          </div>
 
-        <div className="mb-4">
-          <label className="mb-2 block text-sm font-bold text-gray-700">전화번호</label>
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
-            placeholder="010-0000-0000"
-            required
-          />
-        </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>이메일</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="아이디/비밀번호 찾기에 사용됩니다"
+              style={styles.input}
+              required
+            />
+          </div>
 
-        <div className="mb-6">
-          <label className="mb-2 block text-sm font-bold text-gray-700">스마트팜 주소 (농장 위치)</label>
-          <input
-            type="text"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
-            placeholder="농장 주소를 입력하세요"
-            required
-          />
-        </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>전화번호</label>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="010-0000-0000"
+              style={styles.input}
+              required
+            />
+          </div>
 
-        <button
-          type="submit"
-          className="w-full rounded bg-green-600 py-3 text-white font-bold hover:bg-green-700 mb-4 transition"
-        >
-          회원가입 완료
-        </button>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>스마트팜 주소 (농장 위치)</label>
+            <input
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              placeholder="농장 주소를 입력하세요"
+              style={styles.input}
+              required
+            />
+          </div>
 
-        <div className="text-center text-sm">
-          <Link href="/login" className="text-blue-600 hover:underline">
-            이미 계정이 있으신가요? 로그인하기
+          <button type="submit" style={styles.button}>
+            회원가입 완료
+          </button>
+        </form>
+
+        <div style={styles.footer}>
+          <span>이미 계정이 있으신가요? </span>
+          <Link href="/login" style={styles.link}>
+            로그인하기
           </Link>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
+
+// 디자인 스타일 객체
+const styles = {
+  container: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '100vh',
+    backgroundColor: '#f4f7f6',
+    padding: '20px',
+  },
+  card: {
+    width: '100%',
+    maxWidth: '450px',
+    padding: '40px',
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+  },
+  title: {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: '8px',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: '14px',
+    color: '#7f8c8d',
+    marginBottom: '24px',
+    textAlign: 'center',
+  },
+  errorBox: {
+    marginBottom: '16px',
+    padding: '10px',
+    backgroundColor: '#ffeaa7',
+    color: '#d63031',
+    borderRadius: '6px',
+    fontSize: '13px',
+    textAlign: 'center',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '14px',
+  },
+  inputGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  label: {
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#34495e',
+  },
+  input: {
+    padding: '10px 12px',
+    fontSize: '14px',
+    border: '1px solid #dcdde1',
+    borderRadius: '6px',
+    outline: 'none',
+  },
+  button: {
+    marginTop: '10px',
+    padding: '12px',
+    fontSize: '15px',
+    fontWeight: 'bold',
+    color: '#ffffff',
+    backgroundColor: '#27ae60',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+  },
+  footer: {
+    marginTop: '20px',
+    textAlign: 'center',
+    fontSize: '13px',
+    color: '#7f8c8d',
+  },
+  link: {
+    color: '#27ae60',
+    fontWeight: 'bold',
+    textDecoration: 'none',
+  },
+};

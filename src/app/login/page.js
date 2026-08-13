@@ -7,95 +7,174 @@ import Link from 'next/link';
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [autoLogin, setAutoLogin] = useState(false); // 자동 로그인 상태 추가
-  const [error, setError] = useState('');
+  const [autoLogin, setAutoLogin] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
-
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // autoLogin 데이터도 함께 서버로 전송
         body: JSON.stringify({ username, password, autoLogin }),
       });
-
       const data = await res.json();
 
       if (res.ok && data.success) {
-        // 로그인 성공 시 대시보드나 홈으로 이동
+        alert('로그인 성공!');
         router.push('/');
-        router.refresh();
       } else {
-        setError(data.message || '아이디 또는 비밀번호가 올바르지 않습니다.');
+        alert(data.message || '로그인에 실패했습니다.');
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setError('서버 통신 중 오류가 발생했습니다.');
+      alert('서버 오류가 발생했습니다.');
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <form onSubmit={handleLogin} className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
-        <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">Smart Farm 로그인</h1>
-        
-        {error && <div className="mb-4 rounded bg-red-100 p-3 text-sm text-red-700">{error}</div>}
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <h2 style={styles.title}>🌾 Smart Farm ERP</h2>
+        <p style={styles.subtitle}>시스템을 이용하려면 로그인하세요.</p>
 
-        <div className="mb-4">
-          <label className="mb-2 block text-sm font-bold text-gray-700">아이디</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
-            required
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="mb-2 block text-sm font-bold text-gray-700">비밀번호</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
-            required
-          />
-        </div>
-
-        {/* 새로 추가된 자동 로그인 & 아이디/비밀번호 찾기 영역 */}
-        <div className="mb-6 flex items-center justify-between">
-          <label className="flex cursor-pointer items-center text-sm text-gray-700">
+        <form onSubmit={handleLogin} style={styles.form}>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>아이디</label>
             <input
-              type="checkbox"
-              checked={autoLogin}
-              onChange={(e) => setAutoLogin(e.target.checked)}
-              className="mr-2 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+              type="text"
+              placeholder="아이디를 입력하세요"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              style={styles.input}
+              required
             />
-            자동 로그인
-          </label>
-          <Link href="/find-account" className="text-sm text-blue-600 hover:underline">
-            아이디/비밀번호 찾기
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>비밀번호</label>
+            <input
+              type="password"
+              placeholder="비밀번호를 입력하세요"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={styles.input}
+              required
+            />
+          </div>
+
+          <div style={styles.options}>
+            <label style={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={autoLogin}
+                onChange={(e) => setAutoLogin(e.target.checked)}
+              />
+              자동 로그인
+            </label>
+          </div>
+
+          <button type="submit" style={styles.button}>
+            로그인
+          </button>
+        </form>
+
+        <div style={styles.footer}>
+          <span>계정이 없으신가요? </span>
+          <Link href="/signup" style={styles.link}>
+            회원가입하기
           </Link>
         </div>
-
-        <button
-          type="submit"
-          className="w-full rounded bg-green-600 py-2 text-white font-bold hover:bg-green-700 mb-4 transition"
-        >
-          로그인
-        </button>
-
-        <div className="text-center text-sm">
-          <Link href="/signup" className="text-blue-600 hover:underline">
-            계정이 없으신가요? 회원가입하기
-          </Link>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }
+
+// 깔끔한 디자인을 위한 스타일 객체
+const styles = {
+  container: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    backgroundColor: '#f4f7f6',
+  },
+  card: {
+    width: '100%',
+    maxWidth: '400px',
+    padding: '40px',
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+    textAlign: 'center',
+  },
+  title: {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: '8px',
+  },
+  subtitle: {
+    fontSize: '14px',
+    color: '#7f8c8d',
+    marginBottom: '24px',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+    textAlign: 'left',
+  },
+  inputGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  label: {
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#34495e',
+  },
+  input: {
+    padding: '12px',
+    fontSize: '14px',
+    border: '1px solid #dcdde1',
+    borderRadius: '6px',
+    outline: 'none',
+    transition: 'border-color 0.2s',
+  },
+  options: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    fontSize: '13px',
+    color: '#555',
+  },
+  checkboxLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    cursor: 'pointer',
+  },
+  button: {
+    marginTop: '8px',
+    padding: '12px',
+    fontSize: '15px',
+    fontWeight: 'bold',
+    color: '#ffffff',
+    backgroundColor: '#27ae60',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+  },
+  footer: {
+    marginTop: '24px',
+    fontSize: '13px',
+    color: '#7f8c8d',
+  },
+  link: {
+    color: '#27ae60',
+    fontWeight: 'bold',
+    textDecoration: 'none',
+  },
+};
