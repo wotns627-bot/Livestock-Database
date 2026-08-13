@@ -9,6 +9,7 @@ export default function SignupPage() {
     username: '',
     password: '',
     name: '',
+    email: '', // 추가된 이메일 항목
     phone: '',
     address: '',
   });
@@ -26,9 +27,9 @@ export default function SignupPage() {
     e.preventDefault();
     setError('');
 
-    // 빈 값 체크
-    if (!formData.username || !formData.password || !formData.name || !formData.phone || !formData.address) {
-      setError('모든 항목(아이디, 비밀번호, 이름, 연락처, 주소)을 빠짐없이 입력해주세요.');
+    // 빈 값 체크 (이메일 포함)
+    if (!formData.username || !formData.password || !formData.name || !formData.email || !formData.phone || !formData.address) {
+      setError('모든 항목(아이디, 비밀번호, 이름, 이메일, 연락처, 주소)을 빠짐없이 입력해주세요.');
       return;
     }
 
@@ -94,6 +95,20 @@ export default function SignupPage() {
             onChange={handleChange}
             className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
             placeholder="성함을 입력하세요"
+            required
+          />
+        </div>
+
+        {/* 새로 추가된 이메일 입력란 */}
+        <div className="mb-4">
+          <label className="mb-2 block text-sm font-bold text-gray-700">이메일</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
+            placeholder="아이디/비밀번호 찾기에 사용됩니다"
             required
           />
         </div>

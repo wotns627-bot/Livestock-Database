@@ -7,6 +7,7 @@ import Link from 'next/link';
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [autoLogin, setAutoLogin] = useState(false); // 자동 로그인 상태 추가
   const [error, setError] = useState('');
   const router = useRouter();
 
@@ -18,7 +19,8 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        // autoLogin 데이터도 함께 서버로 전송
+        body: JSON.stringify({ username, password, autoLogin }),
       });
 
       const data = await res.json();
@@ -54,7 +56,7 @@ export default function LoginPage() {
           />
         </div>
 
-        <div className="mb-6">
+        <div className="mb-4">
           <label className="mb-2 block text-sm font-bold text-gray-700">비밀번호</label>
           <input
             type="password"
@@ -63,6 +65,22 @@ export default function LoginPage() {
             className="w-full rounded border px-3 py-2 focus:outline-none focus:ring"
             required
           />
+        </div>
+
+        {/* 새로 추가된 자동 로그인 & 아이디/비밀번호 찾기 영역 */}
+        <div className="mb-6 flex items-center justify-between">
+          <label className="flex cursor-pointer items-center text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={autoLogin}
+              onChange={(e) => setAutoLogin(e.target.checked)}
+              className="mr-2 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+            />
+            자동 로그인
+          </label>
+          <Link href="/find-account" className="text-sm text-blue-600 hover:underline">
+            아이디/비밀번호 찾기
+          </Link>
         </div>
 
         <button
