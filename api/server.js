@@ -3,27 +3,24 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser'); // 쿠키 처리를 위해 추가
 const Cow = require('./models/Cow');
-const User = require('./models/User'); // 회원 모델 (아직 없다면 아래 안내 참고)
+const User = require('./models/User');
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({ origin: true, credentials: true })); // 크로스브라우징 쿠키 허용
 app.use(express.json());
+app.use(cookieParser()); // 쿠키 파서 미들웨어 장착
 
-// MongoDB 연결 (하드코딩된 URI 대신 환경변수 우선 사용, 없으면 기존 URI 사용)
 const uri = process.env.MONGODB_URI || "mongodb+srv://wotns627_db_user:4z1GcvsYUfWLcln7@wotns627.3itoagd.mongodb.net/?appName=wotns627";
 
 mongoose.connect(uri)
   .then(() => console.log('데이터베이스 연결 성공!'))
   .catch(err => console.error('연결 실패:', err));
 
-// ==========================================
-// 1. 소(Cow) 관련 API
-// ==========================================
-
-// 소 정보 등록 API
+// [기존 Cow API들은 그대로 유지...]
 app.post('/api/cows', async (req, res) => {
   try {
     const newCow = new Cow(req.body);
@@ -33,8 +30,6 @@ app.post('/api/cows', async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
-
-// 소 전체 목록 조회 API
 app.get('/api/cows', async (req, res) => {
   try {
     const cows = await Cow.find();
@@ -43,8 +38,6 @@ app.get('/api/cows', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// 소 데이터 삭제 API
 app.delete('/api/cows/:id', async (req, res) => {
   try {
     await Cow.findByIdAndDelete(req.params.id);
@@ -53,8 +46,6 @@ app.delete('/api/cows/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// 소 데이터 수정 API
 app.put('/api/cows/:id', async (req, res) => {
   try {
     const updatedCow = await Cow.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -66,62 +57,36 @@ app.put('/api/cows/:id', async (req, res) => {
 
 
 // ==========================================
-// 2. 인증(Auth) 관련 API (회원가입, 로그인, 아이디 찾기)
+// 인증(Auth) 관련 API
 // ==========================================
 
-// 회원가입 API
 app.post('/api/auth/signup', async (req, res) => {
   try {
     const { username, password, name, email, phone, address } = req.body;
-
     if (!username || !password || !name || !email || !phone || !address) {
       return res.status(400).json({ success: false, message: '모든 항목을 입력해주세요.' });
     }
-
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       return res.status(400).json({ success: false, message: '이미 존재하는 아이디입니다.' });
     }
-
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    await User.create({
-      username,
-      password: hashedPassword,
-      name,
-      email,
-      phone,
-      address,
-    });
-
+    await User.create({ username, password: hashedPassword, name, email, phone, address });
     res.json({ success: true, message: '회원가입이 완료되었습니다.' });
   } catch (err) {
-    console.error('Signup Error:', err);
     res.status(500).json({ success: false, message: '서버 내부 오류가 발생했습니다.' });
   }
 });
 
-// 로그인 API
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password, autoLogin } = req.body;
-
     const user = await User.findOne({ username });
-    if (!user) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ success: false, message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
     }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
-    }
-
     const secret = process.env.JWT_SECRET || 'smart_farm_secret_key';
-    const token = jwt.sign(
-      { userId: user._id, username: user.username },
-      secret,
-      { expiresIn: autoLogin ? '30d' : '1d' }
-    );
+    const token = jwt.sign({ userId: user._id, username: user.username }, secret, { expiresIn: autoLogin ? '30d' : '1d' });
 
     res.cookie('token', token, {
       httpOnly: true,
@@ -129,10 +94,8 @@ app.post('/api/auth/login', async (req, res) => {
       maxAge: autoLogin ? 60 * 60 * 24 * 30 * 1000 : 60 * 60 * 24 * 1000,
       path: '/',
     });
-
-    res.json({ success: true, message: '로그인 성공', token });
+    res.json({ success: true, message: '로그인 성공' });
   } catch (err) {
-    console.error('Login Error:', err);
     res.status(500).json({ success: false, message: '서버 내부 오류가 발생했습니다.' });
   }
 });
@@ -141,33 +104,44 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/find', async (req, res) => {
   try {
     const { action, name, email } = req.body;
-
     if (action === 'findId') {
       const user = await User.findOne({ name, email });
-      if (!user) {
-        return res.status(404).json({ success: false, message: '일치하는 정보가 없습니다.' });
-      }
+      if (!user) return res.status(404).json({ success: false, message: '일치하는 정보가 없습니다.' });
       return res.json({ success: true, message: `고객님의 아이디는 [ ${user.username} ] 입니다.` });
     }
-
     res.status(400).json({ success: false, message: '잘못된 요청입니다.' });
   } catch (err) {
-    console.error('Find Error:', err);
     res.status(500).json({ success: false, message: '서버 내부 오류가 발생했습니다.' });
   }
 });
 
+// ★ [신규 추가] 로그아웃 API (쿠키 강제 삭제)
+app.post('/api/auth/logout', (req, res) => {
+  res.clearCookie('token', { path: '/' });
+  res.json({ success: true, message: '로그아웃되었습니다.' });
+});
 
-// ==========================================
-// 서버 실행 설정 (로컬 및 Vercel 배포 양쪽 지원)
-// ==========================================
+// ★ [신규 추가] 로그인 상태 체크 API
+app.get('/api/auth/me', async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ success: false, message: '로그인되지 않았습니다.' });
 
-// 로컬에서 실행할 때 (node server.js)
+    const secret = process.env.JWT_SECRET || 'smart_farm_secret_key';
+    const decoded = jwt.verify(token, secret);
+    const user = await User.findById(decoded.userId).select('-password');
+    if (!user) return res.status(401).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
+
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(401).json({ success: false, message: '유효하지 않은 토큰입니다.' });
+  }
+});
+
 if (process.env.NODE_ENV !== 'production') {
   app.listen(port, () => {
     console.log(`서버가 http://localhost:${port} 에서 실행 중입니다.`);
   });
 }
 
-// Vercel 서버리스 배포를 위한 내보내기
 module.exports = app;
