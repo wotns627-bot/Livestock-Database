@@ -3,82 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>로그인 / 메인</title>
+    <title>로그인 / 회원가입 서비스</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-</head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <!-- Firebase SDK (Modular v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-    <!-- 로그인 박스 -->
-    <div id="login-box" class="bg-white p-8 rounded-lg shadow-md w-96">
-        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">로그인</h2>
-        <form id="login-form">
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2">아이디</label>
-                <input type="text" id="username" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div class="mb-6">
-                <label class="block text-gray-700 text-sm font-bold mb-2">비밀번호</label>
-                <input type="password" id="password" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <button type="submit" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition">로그인</button>
-        </form>
-        <p class="mt-4 text-center text-sm text-gray-600">
-            계정이 없으신가요? <a href="signup.html" class="text-blue-500 font-bold">회원가입</a>
-        </p>
-    </div>
+        // 🔥 본인의 Firebase 설정 정보로 교체하세요
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-    <!-- 로그인 후 메인 박스 (기본 숨김) -->
-    <div id="welcome-box" class="bg-white p-8 rounded-lg shadow-md w-96 hidden text-center">
-        <h2 class="text-2xl font-bold mb-4 text-gray-800">환영합니다!</h2>
-        <p id="user-display" class="text-lg text-gray-600 mb-6"></p>
-        <button id="logout-btn" class="w-full bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition">로그아웃</button>
-    </div>
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-    <script>
-        const loginBox = document.getElementById('login-box');
-        const welcomeBox = document.getElementById('welcome-box');
+        // 화면 요소들
+        const authContainer = document.getElementById('auth-container');
+        const welcomeContainer = document.getElementById('welcome-container');
+        const userEmailSpan = document.getElementById('user-email');
+        
         const loginForm = document.getElementById('login-form');
-        const userDisplay = document.getElementById('user-display');
+        const signupForm = document.getElementById('signup-form');
+        
+        const showSignupBtn = document.getElementById('show-signup');
+        const showLoginBtn = document.getElementById('show-login');
         const logoutBtn = document.getElementById('logout-btn');
 
-        // 새로고침해도 로그인 상태 유지 확인
-        const savedUser = localStorage.getItem('username');
-        if (savedUser) {
-            showWelcome(savedUser);
-        }
+        const signupError = document.getElementById('signup-error');
+        const loginError = document.getElementById('login-error');
 
-        loginForm.addEventListener('submit', async (e) => {
+        // 탭 전환 이벤트
+        showSignupBtn.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            signupForm.classList.remove('hidden');
+            signupError.classList.add('hidden');
+        });
+
+        showLoginBtn.addEventListener('click', () => {
+            signupForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            loginError.classList.add('hidden');
+        });
+
+        // 1. 회원가입 기능 (서버 오류 처리 포함)
+        signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            signupError.classList.add('hidden');
+            
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
 
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                localStorage.setItem('username', data.username);
-                showWelcome(data.username);
-            } else {
-                alert(data.message);
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                alert('회원가입이 완료되었습니다!');
+            } catch (error) {
+                // 서버/파이어베이스 오류 메시지 가공 출력
+                let errorMessage = '회원가입 중 오류가 발생했습니다.';
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = '이미 사용 중인 이메일입니다.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = '비밀번호는 6자리 이상이어야 합니다.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = '올바른 이메일 형식이 아닙니다.';
+                } else {
+                    errorMessage = `서버 오류: ${error.message}`;
+                }
+                
+                signupError.textContent = errorMessage;
+                signupError.classList.remove('hidden');
             }
         });
 
-        logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('username');
-            welcomeBox.classList.add('hidden');
-            loginBox.classList.remove('hidden');
-            loginForm.reset();
+        // 2. 로그인 기능 (서버 오류 처리 포함)
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loginError.classList.add('hidden');
+
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                let errorMessage = '로그인에 실패했습니다.';
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = '이메일 또는 비밀번호가 일치하지 않습니다.';
+                } else {
+                    errorMessage = `서버 오류: ${error.message}`;
+                }
+
+                loginError.textContent = errorMessage;
+                loginError.classList.remove('hidden');
+            }
         });
 
-        function showWelcome(username) {
-            userDisplay.textContent = `${username}님 반갑습니닷!`;
-            loginBox.classList.add('hidden');
-            welcomeBox.classList.remove('hidden');
-        }
+        // 3. 로그아웃 기능
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error('로그아웃 오류', error);
+            }
+        });
+
+        // 4. 실시간 로그인 상태 감지
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userEmailSpan.textContent = user.email;
+                authContainer.classList.add('hidden');
+                welcomeContainer.classList.remove('hidden');
+            } else {
+                authContainer.classList.remove('hidden');
+                welcomeContainer.classList.add('hidden');
+                loginForm.reset();
+                signupForm.reset();
+                signupError.classList.add('hidden');
+                loginError.classList.add('hidden');
+            }
+        });
     </script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+
+    <!-- 인증 영역 (로그인 / 회원가입) -->
+    <div id="auth-container" class="bg-white p-8 rounded-lg shadow-md w-96">
+        
+        <!-- 로그인 폼 -->
+        <form id="login-form">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">로그인</h2>
+            <div id="login-error" class="hidden mb-4 p-3 bg-red-100 border border-red-400 text-red-700 text-sm rounded-lg"></div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">이메일</label>
+                <input type="email" id="login-email" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">비밀번호</label>
+                <input type="password" id="login-password" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition mb-4">로그인</button>
+            <p class="text-center text-sm text-gray-600">
+                계정이 없으신가요? <button type="button" id="show-signup" class="text-blue-500 font-bold hover:underline">회원가입</button>
+            </p>
+        </form>
+
+        <!-- 회원가입 폼 -->
+        <form id="signup-form" class="hidden">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">회원가입</h2>
+            <div id="signup-error" class="hidden mb-4 p-3 bg-red-100 border border-red-400 text-red-700 text-sm rounded-lg"></div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">이메일</label>
+                <input type="email" id="signup-email" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">비밀번호 (6자 이상)</label>
+                <input type="password" id="signup-password" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <button type="submit" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition mb-4">가입하기</button>
+            <p class="text-center text-sm text-gray-600">
+                이미 계정이 있으신가요? <button type="button" id="show-login" class="text-green-500 font-bold hover:underline">로그인</button>
+            </p>
+        </form>
+    </div>
+
+    <!-- 환영 및 로그아웃 영역 -->
+    <div id="welcome-container" class="bg-white p-8 rounded-lg shadow-md w-96 hidden text-center">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">환영합니다!</h2>
+        <p id="user-email" class="text-lg text-gray-600 mb-6 font-medium"></p>
+        <button id="logout-btn" class="w-full bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition">로그아웃</button>
+    </div>
+
 </body>
 </html>
